@@ -1,18 +1,34 @@
 %%
 % Define the base directory containing the subfolders
-baseDir = '/Users/johnmarshall/Documents/Analysis/miniscope_lineartrack/m1_forAlignment/';
+baseDir = '/Users/johnmarshall/Documents/Analysis/miniscope_lineartrack/m3_forAlignment_2/';
 
 % Get a list of all subfolders following the "cellimages_day*" naming pattern
 subfolders = dir(fullfile(baseDir, 'cellimages_day*'));
 
+pathToDirectoryWithTrackingFiles='/Users/johnmarshall/Documents/Analysis/miniscope_lineartrack/m3_AlignedToTracking/';
+aligned_to_tracking_files = ['ell_traces_Mouse3day2cellTracesAlignedToTracking.csv';
+    'ell_traces_Mouse3day3cellTracesAlignedToTracking.csv';
+    'ell_traces_Mouse3day4cellTracesAlignedToTracking.csv';
+    'ell_traces_Mouse3day7cellTracesAlignedToTracking.csv'];
+
 % Loop through each subfolder
 for k = 1:numel(subfolders)
+    % get the indicies of accepted neurons 
+    %
+    fileName = aligned_to_tracking_files(k,:); 
+    fileData = readtable(strcat(pathToDirectoryWithTrackingFiles, fileName), 'VariableNamesLine', 1);
+    firstRow = fileData{1, 2:end};
+    numericArray = firstRow(~isnan(firstRow));
+    numericArrayIndexCorrected = numericArray+1;
+
     % Get the full path of the current folder
     folderPath = fullfile(baseDir, subfolders(k).name);
+    %folderPath = fullfile(baseDir, 'Day2');
 
     % Get a list of all image files in the current folder
     imageFiles = dir(fullfile(folderPath, '*.tiff'));
-    numImages = numel(imageFiles); % Total number of images
+    %
+    numImages = length(numericArrayIndexCorrected); % Total number of images
     
     % Read the first image to determine the dimensions
     firstImage = imread(fullfile(folderPath, imageFiles(1).name));
@@ -22,9 +38,10 @@ for k = 1:numel(subfolders)
     imageStack = zeros(height, width, numImages, 'like', firstImage);
     
     % Load all images into the 3D array
-    for i = 1:numImages
+    for i = 1:length(numericArrayIndexCorrected)
+        imageIdx = numericArrayIndexCorrected(1, i); 
         % Read the image
-        currentImage = imread(fullfile(folderPath, imageFiles(i).name));
+        currentImage = imread(fullfile(folderPath, imageFiles(imageIdx).name));
         
         % Store the image in the 3D array
         imageStack(:, :, i) = currentImage;
@@ -41,11 +58,17 @@ end
 %%
 % reshape for cell reg
 
-originalMatrix_1 = cellimages_day1;
+originalMatrix_1 = cellimages_day2;
 reshapedMatrix_1 = permute(originalMatrix_1, [3, 1, 2]);
 
-originalMatrix_2 = cellimages_day2;
+originalMatrix_2 = cellimages_day3;
 reshapedMatrix_2 = permute(originalMatrix_2, [3, 1, 2]);
+
+originalMatrix_3 = cellimages_day4;
+reshapedMatrix_3 = permute(originalMatrix_3, [3, 1, 2]);
+
+originalMatrix_4 = cellimages_day7;
+reshapedMatrix_4 = permute(originalMatrix_4, [3, 1, 2]);
 
 
 
